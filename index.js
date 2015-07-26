@@ -11,15 +11,18 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/', function(req, res) {
 var checkAuth;
-console.log(typeof req["query"]);
+var authToken;
 if (JSON.stringify(req["query"]) === '{}')
-		checkAuth=false;
-	else
-		checkAuth=true;
-
+	checkAuth=false;
+else{
+	checkAuth=true;
+	console.log (JSON.parse(req["query"].auth).token);
+	authToken = JSON.stringify(JSON.parse(req["query"].auth).token);
+}
   res.render('home', {
     title: 'Welcome',
-	authenticated:checkAuth
+	authenticated:checkAuth,
+	authToken:authToken
   });
 });
 app.get('/register', function(req, res) {
@@ -34,4 +37,10 @@ app.use('/geniuses',function(req, res){
 app.use('/genius',function(req, res){
 	res.render('geniusInfo', {});
 });
+app.get('/login', function(req, res) {
+  res.render('login', {
+    title: 'Login!'
+  });
+});
+app.use('/login',require('./views/login')());
 app.listen(3001);

@@ -1,14 +1,14 @@
 (function (angular) {
 var app = angular.module('geniuses', ["firebase", "ui.bootstrap"]);
 
-app.controller('GetAllGeniuses', ["$scope", 'GeniusFactory',
+app.controller('GetAllGeniuses', ["$scope", 'GeniusFactory', 
     function($scope, GeniusFactory) {
-      $scope.users = GeniusFactory.users();
-    }
-  ]);
+	  $scope.users = GeniusFactory.users();
+	  }]
+	);
   
-app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$window",
-		function($scope, GeniusFactory, $location,$window) {
+app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$window","$firebaseObject",
+		function($scope, GeniusFactory, $location,$window,$firebaseObject) {
 		  var index = $location.search().index;
 		  $scope.user = '';
 		  GeniusFactory.users().$loaded()
@@ -48,7 +48,6 @@ app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$wi
 					break;
 				}
 			}
-			console.log("index---->"+index);
 			if(index != -1){
 				$window.location.href = '/genius#?index='+index;
 			}
@@ -59,7 +58,7 @@ app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$wi
     }
   ]);
   
-  app.factory('GeniusFactory', ["$firebaseArray",  function($firebaseArray) {
+  app.factory('GeniusFactory', ["$firebaseArray", "$http", "$location", function($firebaseArray,$http,$location) {
     //Create a users object
     var _users;
 	var ref = "https://torrid-heat-237.firebaseio.com/Users-sagar-array";
@@ -82,23 +81,24 @@ app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$wi
 
     function users() {
       //This will cache your users for as long as the application is running.
-      if (!_users) {
-        //_users = $firebaseArray(new Firebase("****"));
-        _users = $firebaseArray(new Firebase(ref));
-        /*_users = [{
-          geniusid: "new",
-          geniusname: "Harry"
-        }, {
-          "geniusid": "new",
-          "geniusname": "Jean"
-        }, {
-          "geniusid": "news",
-          "geniusname": "Mike"
-        }, {
-          "geniusid": "qazwsx",
-          "geniusname": "Lynn"
-        }];*/
-      }
+		  if (!_users) {
+			//_users = $firebaseArray(new Firebase("****"));
+			_users = $firebaseArray(new Firebase(ref));
+			/*_users = [{
+			  geniusid: "new",
+			  geniusname: "Harry"
+			}, {
+			  "geniusid": "new",
+			  "geniusname": "Jean"
+			}, {
+			  "geniusid": "news",
+			  "geniusname": "Mike"
+			}, {
+			  "geniusid": "qazwsx",
+			  "geniusname": "Lynn"
+			}];*/
+		  }
+		//}).
       return _users;
     }
 	

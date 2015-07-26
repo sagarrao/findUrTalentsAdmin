@@ -21,25 +21,11 @@ var profileForm = forms.create({
 // as any situation-specific locals
 
 function renderForm(req,res,locals){
-  res.render('register', extend({
-    title: 'Register!',
+  res.render('login', extend({
+    title: 'Login!',
     email: req.body.email,
     password: req.body.password
   },locals||{}));
-}
-
-function loginUser(req,res){
-	ref.authWithPassword({
-	  email    : req.body.email,
-	  password : req.body.password
-	}, function(error, authData) {
-	  if (error) {
-		console.log("Login Failed!", error);
-	  } else {
-		console.log("Authenticated successfully with payload:", authData);
-		renderForm(req,res,{saved:true,auth:JSON.stringify(authData)});
-	  }
-	},{remember: "sessionOnly"});
 }
 
 // Export a function which will create the
@@ -58,21 +44,12 @@ module.exports = function profile(){
         // The form library calls this success method if the
         // form is being POSTED and does not have errors
 
-		ref.createUser({
+		ref.authWithPassword({
 		  email: form.data.email,
 		  password: form.data.password
-		}, function(error, userData) {
+		}, function(error, authData) {
 		  if (error) {
-			switch (error.code) {
-			  case "EMAIL_TAKEN":
-				console.log("The new user account cannot be created because the email is already in use.");
-				break;
-			  case "INVALID_EMAIL":
-				console.log("The specified email is not a valid email.");
-				break;
-			  default:
-				console.log("Error creating user:", error);
-			}
+			console.log("Login Failed!", error);
 			renderForm(req,res,{
               errors: [{
                 error: error.userMessage ||
@@ -80,10 +57,10 @@ module.exports = function profile(){
               }]
             });
 		  } else {
-			console.log("Successfully created user account with uid:", userData.uid+". Now logging in...");
-			loginUser(req,res);
+			console.log("Authenticated successfully with payload:", authData);
+			res.redirect('/?auth='+JSON.stringify(authData));
 		  }
-		});
+		},{remember: "sessionOnly"});
       },
       error: function(form){
         // The form library calls this method if the form

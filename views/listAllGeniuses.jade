@@ -11,11 +11,13 @@ html(ng-app='geniuses')
     div.container
       div.page-header
        h2 All Geniuses!
-        div(ng-controller='SearchAGenius')
-         input(type='text', ng-model='selected|json', id ='selectedUser')
-         input.form-control(placeholder='Genius',name='search-genius',ng-model="selected",
-          typeahead="user as user.geniusname for user in usersArr | filter:{'geniusid':$viewValue} | limitTo:8")
-         button(ng-click="gotoAGenius()") Login now
+        form.geniuses-form.form-horizontal(role='form',ng-controller='SearchAGenius',name='geniusesForm')
+         div.form-group
+            div.col-sm-8
+               input(type='text', ng-model='selected|json', id ='selectedUser', style="display: none;")
+               input.form-control(placeholder='Genius',name='search-genius',ng-model="selected",typeahead="user as user.geniusname for user in usersArr | filter:{'geniusid':$viewValue} | limitTo:8")
+            div.col-sm-8
+            button.search.btn.btn-primary(ng-click="gotoAGenius()") Search
        div(ng-controller='GetAllGeniuses')
          ul
            li(ng-repeat='user in users') {{ user.geniusid }}
