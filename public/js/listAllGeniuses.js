@@ -1,5 +1,6 @@
 (function (angular) {
 var app = angular.module('geniuses', ["firebase", "ui.bootstrap"]);
+var ref = "https://torrid-heat-237.firebaseio.com/Users-sagar";
 
 app.controller('GetAllGeniuses', ["$scope", 'GeniusFactory', 
     function($scope, GeniusFactory) {
@@ -9,14 +10,9 @@ app.controller('GetAllGeniuses', ["$scope", 'GeniusFactory',
   
 app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$window","$firebaseObject",
 		function($scope, GeniusFactory, $location,$window,$firebaseObject) {
-		  var index = $location.search().index;
-		  $scope.user = '';
-		  GeniusFactory.users().$loaded()
-		  .then(function(users){
-			$scope.user = users[index];
-			}).catch(function(error) {
-				console.error("Error:", error);
-			});
+		  var userId = $location.search().id;
+		  $scope.user = GeniusFactory.user(userId);
+		  
 		$scope.saveGeniusInfo = function(){
 			var geniusForm = $scope.geniusInfoForm;
 			if(geniusForm.$pristine)
@@ -27,48 +23,38 @@ app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$wi
 					user.geniusid = geniusForm.geniusid.$viewValue;
 				if(geniusForm.geniusname.$dirty)
 					user.geniusname = geniusForm.geniusname.$viewValue;
-				GeniusFactory.updateUser(user,index);
+				GeniusFactory.updateUser(user,userId);
 			}
-			//console.log("id changed--->"+$scope.geniusInfoForm.geniusid.$pristine);
-			//console.log("name changed--->"+$scope.geniusInfoForm.geniusname.$pristine);
 		}
 	}
 ]);
 
-  app.controller('SearchAGenius', ["$scope", "GeniusFactory","$window",function($scope,GeniusFactory,$window) {
+  app.controller('SearchAGenius', ["$scope", "GeniusFactory","$window","$firebaseArray",
+	function($scope,GeniusFactory,$window,$firebaseArray) {
       $scope.selected = '';
-      $scope.usersArr = GeniusFactory.users();
+      $scope.usersArray = GeniusFactory.usersArray();
 	  $scope.gotoAGenius = function(){
-			var userObjId = JSON.parse(angular.element(document.getElementById("selectedUser")).val())['$id'];
-			var arr = $scope.usersArr;
-			var index = -1;
-			for(var i = 0; i < arr.length; i++){
-				if(userObjId == arr[i].$id){
-					index = i;
-					break;
-				}
-			}
-			if(index != -1){
-				$window.location.href = '/genius#?index='+index;
-			}
-			else{
-				$window.alert("User not Found...");
-			}
+			var userId = JSON.parse(angular.element(document.getElementById("selectedUser")).val())['$id'];
+			$window.location.href = '/genius#?id='+userId;
 		};
     }
   ]);
   
-  app.factory('GeniusFactory', ["$firebaseArray", "$http", "$location", function($firebaseArray,$http,$location) {
+  app.factory('GeniusFactory', ["$firebaseObject", "$firebaseArray","$http", "$location", function($firebaseObject,$firebaseArray,$http,$location) {
     //Create a users object
     var _users;
-	var ref = "https://torrid-heat-237.firebaseio.com/Users-sagar-array";
+	var _usersArray;
+	var _user;
 
     return {
       users: users,
+	  usersArray:usersArray,
+	  user : function getUser(id){
+		_user = $firebaseObject(new Firebase(ref+"/"+id));
+		return _user;
+	  },
 	  updateUser: function updateUser(user,index){
-			_users[index] = user;
-			console.log(_users.$keyAt(_users[index]));
-			_users.$save(_users[index]).
+			_user.$save().
 			then(function(ref) {
 				console.log("USer updated..");
 			}).catch(function(error) {
@@ -78,27 +64,17 @@ app.controller('GetOrUpdateGenius', ["$scope", "GeniusFactory", "$location","$wi
     }
 	
 	
+	function usersArray(){
+		if(!_usersArray)
+			_usersArray = $firebaseArray(new Firebase(ref));
+		return _usersArray;
+	}
 
     function users() {
       //This will cache your users for as long as the application is running.
 		  if (!_users) {
-			//_users = $firebaseArray(new Firebase("****"));
-			_users = $firebaseArray(new Firebase(ref));
-			/*_users = [{
-			  geniusid: "new",
-			  geniusname: "Harry"
-			}, {
-			  "geniusid": "new",
-			  "geniusname": "Jean"
-			}, {
-			  "geniusid": "news",
-			  "geniusname": "Mike"
-			}, {
-			  "geniusid": "qazwsx",
-			  "geniusname": "Lynn"
-			}];*/
+			_users = $firebaseObject(new Firebase(ref));
 		  }
-		//}).
       return _users;
     }
 	
